@@ -2,6 +2,9 @@
   "devDependencies": {
     "prisma": "^5.22.0"
   },
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build"
+  },
   "dependencies": {
     "@prisma/client": "^5.22.0"
   }
