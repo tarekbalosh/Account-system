@@ -101,6 +101,7 @@ export default function SalesPage() {
         amount: '', 
         date: new Date().toISOString().split('T')[0], 
         description: '',
+        paymentType: 'Cash',
         inventoryId: null,
         quantity: ''
       });

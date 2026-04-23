@@ -49,6 +49,7 @@ export interface Sale {
   amount: number;
   date: string;
   description?: string;
+  paymentType?: string;
   items?: SaleItem[];
 }
 

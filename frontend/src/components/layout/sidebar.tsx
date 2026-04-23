@@ -83,7 +83,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   layoutId="sidebar-active"
                   className="absolute inset-0 bg-blue-600/5 border-l-2 border-blue-600"
                   initial={false}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  transition={{ type: "spring" as const, stiffness: 300, damping: 30 }}
                 />
               )}
             </Link>
@@ -134,7 +134,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              transition={{ type: "spring" as const, damping: 25, stiffness: 200 }}
               className="absolute left-0 top-0 h-full shadow-2xl"
             >
               {sidebarContent}

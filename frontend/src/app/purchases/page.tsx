@@ -93,7 +93,7 @@ export default function PurchasesPage() {
     setFormData({
       supplier: purchase.supplier,
       invoiceDate: new Date(purchase.invoiceDate).toISOString().split('T')[0],
-      items: purchase.items.map(i => ({
+      items: (purchase.items || []).map(i => ({
         materialId: i.materialId.toString(),
         quantity: i.quantity.toString(),
         unitCost: i.unitCost.toString()
