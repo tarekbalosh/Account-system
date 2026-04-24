@@ -20,7 +20,7 @@ export class ExpensesService {
         amount: dto.amount,
         date: new Date(dto.date),
         description: dto.description,
-        category: dto.categoryId ? { connect: { id: dto.categoryId } } : undefined,
+        category: { connect: { id: dto.categoryId } },
         user: { connect: { id: userId } },
       },
     });
@@ -56,7 +56,7 @@ export class ExpensesService {
         amount: dto.amount !== undefined ? dto.amount : undefined,
         date: dto.date ? new Date(dto.date) : undefined,
         description: dto.description,
-        category: dto.categoryId ? { connect: { id: dto.categoryId } } : undefined,
+        category: dto.categoryId ? { connect: { id: dto.categoryId } } : undefined as any,
         user: { connect: { id: userId } },
       },
     });

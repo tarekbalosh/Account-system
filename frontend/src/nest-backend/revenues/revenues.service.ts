@@ -39,7 +39,7 @@ export class RevenuesService {
           amount: dto.amount,
           date: new Date(dto.date),
           description: dto.description,
-          category: dto.categoryId ? { connect: { id: dto.categoryId } } : undefined,
+          category: { connect: { id: dto.categoryId } },
           user: { connect: { id: userId } },
         },
       });
@@ -162,7 +162,7 @@ export class RevenuesService {
           amount: dto.amount !== undefined ? dto.amount : existing.amount,
           date: dto.date ? new Date(dto.date) : existing.date,
           description: dto.description !== undefined ? dto.description : existing.description,
-          category: dto.categoryId ? { connect: { id: dto.categoryId } } : undefined,
+          category: dto.categoryId ? { connect: { id: dto.categoryId } } : undefined as any,
           user: { connect: { id: userId } },
         },
       });
