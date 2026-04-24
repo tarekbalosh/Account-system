@@ -1,8 +1,10 @@
 {
+  "version": 2,
   "functions": {
     "backend/src/vercel.ts": {
       "runtime": "@vercel/node",
-      "includeFiles": "prisma/**"
+      "memory": 1024,
+      "maxDuration": 10
     }
   },
   "rewrites": [
