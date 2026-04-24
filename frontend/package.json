@@ -41,8 +41,12 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20",
+    "@types/passport": "^1.0.17",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/pdfmake": "^0.3.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
