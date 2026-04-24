@@ -1,6 +1,7 @@
 // src/reports/reports.service.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+// @ts-ignore
 import PdfPrinter from 'pdfmake';
 import * as ExcelJS from 'exceljs';
 import * as express from 'express';
@@ -91,7 +92,7 @@ export class ReportsService {
       }
     };
 
-    const printer = new PdfPrinter(fonts);
+    const printer = new (PdfPrinter as any)(fonts);
     const docDefinition = {
       content: [
         { text: 'Profit & Loss Report', style: 'header' },
