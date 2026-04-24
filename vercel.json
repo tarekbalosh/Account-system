@@ -1,26 +1,14 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "backend/src/vercel.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["prisma/**", "backend/prisma/**"]
-      }
-    },
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/next"
+  "functions": {
+    "backend/src/vercel.ts": {
+      "runtime": "@vercel/node",
+      "includeFiles": "prisma/**"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "backend/src/vercel.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "frontend/$1"
+      "source": "/api/(.*)",
+      "destination": "/backend/src/vercel.ts"
     }
   ]
 }
