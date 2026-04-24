@@ -1,7 +1,7 @@
 // src/reports/reports.controller.ts
 import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
 import { ReportsService } from './reports.service';
-import { Response } from 'express';
+import * as express from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -29,7 +29,7 @@ export class ReportsController {
   async exportExcel(
     @Query('from') from: string,
     @Query('to') to: string,
-    @Res() res: Response,
+    @Res() res: express.Response,
   ) {
     const fromDate = new Date(from);
     fromDate.setHours(0, 0, 0, 0);
@@ -43,7 +43,7 @@ export class ReportsController {
   async exportPDF(
     @Query('from') from: string,
     @Query('to') to: string,
-    @Res() res: Response,
+    @Res() res: express.Response,
   ) {
     const fromDate = new Date(from);
     fromDate.setHours(0, 0, 0, 0);

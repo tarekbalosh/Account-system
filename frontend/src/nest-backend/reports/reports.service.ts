@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import PdfPrinter = require('pdfmake');
 import * as ExcelJS from 'exceljs';
-import { Response } from 'express';
+import * as express from 'express';
 
 @Injectable()
 export class ReportsService {
@@ -54,7 +54,7 @@ export class ReportsService {
     };
   }
 
-  async exportToExcel(res: Response, from: Date, to: Date) {
+  async exportToExcel(res: express.Response, from: Date, to: Date) {
     const data = await this.getProfitLoss(from, to);
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Profit & Loss');
@@ -79,7 +79,7 @@ export class ReportsService {
 
   // PDF generation would usually use a separate utility or library like pdfmake
   // For simplicity here, I'll provide a placeholder or basic structure
-  async generatePDF(res: Response, from: Date, to: Date) {
+  async generatePDF(res: express.Response, from: Date, to: Date) {
     const data = await this.getProfitLoss(from, to);
     
     const fonts = {
