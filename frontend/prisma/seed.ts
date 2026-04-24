@@ -88,12 +88,14 @@ async function main() {
 
   for (const exp of expenses) {
     const category = expCats.find(c => c.name === exp.cat);
+    if (!category) continue;
+    
     await prisma.expense.create({
       data: {
         amount: exp.amount,
         date: new Date(now.getFullYear(), now.getMonth(), 5 + Math.random() * 20),
         description: exp.desc,
-        category: category ? { connect: { id: category.id } } : undefined,
+        category: { connect: { id: category.id } },
         user: { connect: { id: admin.id } }
       }
     });
