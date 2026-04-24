@@ -7,8 +7,13 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
-  app.use(helmet());
-  app.enableCors({ origin: true, credentials: true });
+  app.use(helmet({
+    crossOriginResourcePolicy: false,
+  }));
+  app.enableCors({
+    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : true,
+    credentials: true,
+  });
   const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`🚀 Backend listening on http://localhost:${port}`);
