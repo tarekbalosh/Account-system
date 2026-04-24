@@ -1,7 +1,7 @@
 // src/reports/reports.service.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import PdfPrinter = require('pdfmake');
+import PdfPrinter from 'pdfmake';
 import * as ExcelJS from 'exceljs';
 import * as express from 'express';
 
