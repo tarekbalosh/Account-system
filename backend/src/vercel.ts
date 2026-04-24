@@ -9,6 +9,7 @@ export default async function handler(req: any, res: any) {
   if (!cachedApp) {
     cachedApp = await NestFactory.create(AppModule);
     cachedApp.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+    cachedApp.setGlobalPrefix('api');
     cachedApp.use(helmet({
       crossOriginResourcePolicy: false,
     }));
