@@ -61,7 +61,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-2 py-6 scrollbar-hide">
         {filteredNavigation.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+          const isActive = pathname?.startsWith(item.href) || false;
           return (
             <Link
               key={item.name}
