@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  role      String    @default("ACCOUNTANT") // ADMIN or ACCOUNTANT
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  revenues  Revenue[]
+  sales     Sale[]
+  expenses  Expense[]
+  purchases Purchase[]
+  inventory InventoryItem[]
+}
+
+model Sale {
+  id          Int          @id @default(autoincrement())
+  amount      Float
+  date        DateTime     @default(now())
+  description String?
+  paymentType String       @default("Cash") // Cash, Grab, Foodpanda, QR
+  user        User         @relation(fields: [userId], references: [id])
+  userId      Int
+  items       SaleItem[]
+}
+
+model SaleItem {
+  id          Int           @id @default(autoincrement())
+  sale        Sale          @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleId      Int
+  inventory   InventoryItem @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  inventoryId Int
+  quantity    Int
+}
+
+model RevenueCategory {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  revenues Revenue[]
+}
+
+model Revenue {
+  id          Int              @id @default(autoincrement())
+  amount      Float
+  date        DateTime         @default(now())
+  description String?
+  category    RevenueCategory  @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  user        User             @relation(fields: [userId], references: [id])
+  userId      Int
+  items       RevenueItem[]
+}
+
+model RevenueItem {
+  id          Int           @id @default(autoincrement())
+  revenue     Revenue       @relation(fields: [revenueId], references: [id], onDelete: Cascade)
+  revenueId   Int
+  inventory   InventoryItem @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  inventoryId Int
+  quantity    Int
+}
+
+model ExpenseCategory {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  expenses Expense[]
+}
+
+model Expense {
+  id          Int               @id @default(autoincrement())
+  amount      Float
+  date        DateTime          @default(now())
+  description String?
+  category    ExpenseCategory   @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  user        User              @relation(fields: [userId], references: [id])
+  userId      Int
+}
+
+model Purchase {
+  id          Int           @id @default(autoincrement())
+  supplier    String
+  invoiceDate DateTime      @default(now())
+  totalAmount Float
+  items       PurchaseItem[]
+  user        User          @relation(fields: [userId], references: [id])
+  userId      Int
+}
+
+model PurchaseItem {
+  id         Int           @id @default(autoincrement())
+  purchase   Purchase      @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  purchaseId Int
+  material   InventoryItem @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  materialId Int
+  quantity   Int
+  unitCost   Float
+}
+
+model InventoryItem {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  quantity     Int           @default(0)
+  unitCost     Float
+  purchases    PurchaseItem[]
+  revenueItems RevenueItem[]
+  saleItems    SaleItem[]
+  logs         InventoryLog[]
+  user         User          @relation(fields: [userId], references: [id])
+  userId       Int           @default(1)
+}
+
+model InventoryLog {
+  id           Int           @id @default(autoincrement())
+  inventory    InventoryItem @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  inventoryId  Int
+  operationType String        // PURCHASE, SALE, UPDATE, DELETE
+  quantityDiff Int           // positive for increase, negative for decrease
+  timestamp    DateTime      @default(now())
+}
