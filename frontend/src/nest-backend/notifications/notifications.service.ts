@@ -7,7 +7,7 @@ export class NotificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAlerts() {
-    const alerts = [];
+    const alerts: any[] = [];
     
     // Check for high expenses (e.g., current month > previous month)
     const now = new Date();
