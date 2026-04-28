@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
     const dateStr = new Date().toISOString().split('T')[0];
     const pdfBuffer = buildPDF(Array.isArray(expenses) ? expenses : [], Array.isArray(categories) ? categories : []);
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     const dateStr = new Date().toISOString().split('T')[0];
     const pdfBuffer = buildPDF(expenses, categories);
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
