@@ -95,25 +95,33 @@ function buildPDF(expenses: any[], categories: any[]): Buffer {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  let expenses: any[] = [];
+  let categories: any[] = [];
 
   try {
-    const token = req.query.token as string;
-    if (!token) {
-      return res.status(401).json({ error: 'Missing auth token' });
+    if (req.method === 'POST') {
+      // Data passed directly in body
+      const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      expenses = data.expenses || [];
+      categories = data.categories || [];
+    } else if (req.method === 'GET') {
+      const token = req.query.token as string;
+      if (!token) {
+        return res.status(401).json({ error: 'Missing auth token' });
+      }
+
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+
+      const [expRes, catRes] = await Promise.all([
+        fetch(`${backendUrl}/expenses`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${backendUrl}/expenses/categories`, { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+
+      expenses = expRes.ok ? await expRes.json() : [];
+      categories = catRes.ok ? await catRes.json() : [];
+    } else {
+      return res.status(405).json({ error: 'Method not allowed' });
     }
-
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
-
-    const [expRes, catRes] = await Promise.all([
-      fetch(`${backendUrl}/expenses`, { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`${backendUrl}/expenses/categories`, { headers: { Authorization: `Bearer ${token}` } }),
-    ]);
-
-    const expenses = expRes.ok ? await expRes.json() : [];
-    const categories = catRes.ok ? await catRes.json() : [];
 
     const dateStr = new Date().toISOString().split('T')[0];
     const pdfBuffer = buildPDF(Array.isArray(expenses) ? expenses : [], Array.isArray(categories) ? categories : []);
@@ -122,9 +130,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Content-Disposition', `attachment; filename="expenses_report_${dateStr}.pdf"`);
     res.setHeader('Content-Length', pdfBuffer.length);
     res.setHeader('Cache-Control', 'private, no-store');
-    res.status(200).end(pdfBuffer);
+    res.status(200).send(pdfBuffer);
   } catch (error: any) {
     console.error('[PDF Pages API Error]', error?.message || error);
     res.status(500).json({ error: 'PDF generation failed', detail: error?.message });
   }
 }
+

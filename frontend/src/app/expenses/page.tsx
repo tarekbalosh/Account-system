@@ -159,17 +159,38 @@ export default function ExpensesPage() {
     return matchesSearch && matchesCategory;
   });
 
-  const exportToPDF = () => {
-    // Read token from localStorage (same place the API interceptor uses it)
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    if (!token) {
-      alert('You must be logged in to download the report.');
-      return;
-    }
-    // Direct GET navigation to Pages API (no RSC headers, clean download)
-    window.location.href = `/api/export-pdf?token=${encodeURIComponent(token)}`;
+  const exportToPDF = async () => {
+    try {
+      const response = await fetch('/api/export-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          expenses: filteredExpenses, 
+          categories 
+        }),
+      });
 
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `expenses_report_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('PDF Export Error:', err);
+      alert('Failed to generate PDF. Please try again.');
+    }
   };
+
 
 
 
