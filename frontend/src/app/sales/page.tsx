@@ -160,6 +160,8 @@ export default function SalesPage() {
       paymentType: item.paymentType || 'Cash',
       inventoryId: itemData?.inventoryId || null,
       quantity: itemData?.quantity?.toString() || '',
+      debitAccount: 'Cash/Bank (1001)',
+      creditAccount: 'Sales Revenue (4001)',
     });
     setIsModalOpen(true);
   };

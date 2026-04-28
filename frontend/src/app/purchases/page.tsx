@@ -106,12 +106,15 @@ export default function PurchasesPage() {
     setFormData({
       supplier: purchase.supplier,
       invoiceDate: new Date(purchase.invoiceDate).toISOString().split('T')[0],
+      debitAccount: '',
+      creditAccount: '',
       items: (purchase.items || []).map(i => ({
         materialId: i.materialId.toString(),
         quantity: i.quantity.toString(),
         unitCost: i.unitCost.toString()
       }))
     });
+
     setIsModalOpen(true);
   };
 
@@ -233,10 +236,11 @@ export default function PurchasesPage() {
               setFormData({ 
                 supplier: '', 
                 invoiceDate: new Date().toISOString().split('T')[0], 
-                debitAccountCode: '5001',
-                creditAccountCode: '1001',
+                debitAccount: '5001',
+                creditAccount: '1001',
                 items: [{ materialId: '', quantity: '1', unitCost: '' }] 
               });
+
               setIsModalOpen(true);
             }}
             className="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
