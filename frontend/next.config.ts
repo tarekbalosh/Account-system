@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
       {
         source: '/api/:path*',
         destination: process.env.NODE_ENV === 'production' 
-          ? '/api/:path*' // This will be handled by vercel.json or the serverless function
+          ? '/api/:path*' 
           : 'http://localhost:3001/api/:path*',
       },
     ];

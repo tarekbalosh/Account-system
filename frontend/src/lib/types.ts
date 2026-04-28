@@ -90,16 +90,25 @@ export interface Purchase {
   items?: PurchaseItem[];
 }
 
-export interface ProfitLossReport {
-  period: { from: string; to: string };
-  totalRevenue: number;
-  generalExpenses: number;
-  consumptionMaterials: number;
-  totalExpenses: number;
-  netProfit: number;
-}
 
 export interface Notification {
   type: 'WARNING' | 'CRITICAL';
   message: string;
+}
+
+export interface Account {
+  id: number;
+  name: string;
+  code: string;
+  type: string;
+}
+
+export interface Transaction {
+  id: number;
+  date: string;
+  debitAccount: string;
+  creditAccount: string;
+  amount: number;
+  description?: string;
+  reference?: string;
 }

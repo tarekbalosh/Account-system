@@ -6,9 +6,14 @@ import { UpdateRevenueDto } from './dto/update-revenue.dto';
 import { Revenue } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 
+import { AccountingService } from '../accounting/accounting.service';
+
 @Injectable()
 export class RevenuesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly accounting: AccountingService,
+  ) {}
 
   async create(dto: CreateRevenueDto, userId: number): Promise<Revenue> {
     // Validate category existence if provided
@@ -69,6 +74,14 @@ export class RevenuesService {
           });
         }
       }
+
+      await this.accounting.recordRevenue(
+        revenue.amount,
+        revenue.description || 'No description',
+        `Revenue #${revenue.id}`,
+        revenue.date,
+        prisma
+      );
 
       return revenue;
     });

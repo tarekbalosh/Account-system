@@ -61,19 +61,6 @@ A full-stack, production-ready accounting system built for small restaurants. Th
 }
 ```
 
-### 4. Profit & Loss Report
-**GET `/reports/profit-loss?from=2024-04-01&to=2024-04-30`**
-```json
-{
-  "period": {
-    "from": "2024-04-01T00:00:00.000Z",
-    "to": "2024-04-30T23:59:59.000Z"
-  },
-  "totalRevenue": 15000.00,
-  "totalExpenses": 8500.25,
-  "netProfit": 6499.75
-}
-```
 
 ---
 

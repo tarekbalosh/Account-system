@@ -29,6 +29,7 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Sale | null>(null);
+  const [accounts, setAccounts] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Confirmation State
@@ -53,16 +54,20 @@ export default function SalesPage() {
     paymentType: 'Cash',
     inventoryId: null as number | null,
     quantity: '',
+    debitAccount: 'Cash/Bank (1001)',
+    creditAccount: 'Sales Revenue (4001)',
   });
 
   const fetchInitialData = async () => {
     try {
-      const [salesRes, invRes] = await Promise.all([
+      const [salesRes, invRes, accRes] = await Promise.all([
         api.get<Sale[]>('/sales'),
         api.get<InventoryItem[]>('/inventory'),
+        api.get<any[]>('/accounting/accounts'),
       ]);
       setSales(salesRes.data);
       setInventory(invRes.data);
+      setAccounts(accRes.data);
     } catch (err) {
       console.error('Failed to fetch data');
     } finally {
@@ -78,7 +83,15 @@ export default function SalesPage() {
     e.preventDefault();
     setError(null);
 
-    /* No product selection required */
+    if (!formData.inventoryId) {
+      setError('Please select a product from inventory');
+      return;
+    }
+
+    if (!formData.quantity || parseInt(formData.quantity) <= 0) {
+      setError('Please enter a valid quantity');
+      return;
+    }
 
     try {
       const payload = {
@@ -86,7 +99,14 @@ export default function SalesPage() {
         date: formData.date,
         description: formData.description,
         paymentType: formData.paymentType,
-        items: []
+        debitAccount: formData.debitAccount,
+        creditAccount: formData.creditAccount,
+        items: [
+          {
+            inventoryId: formData.inventoryId,
+            quantity: parseInt(formData.quantity)
+          }
+        ]
       };
 
       if (editingItem) {
@@ -103,7 +123,9 @@ export default function SalesPage() {
         description: '',
         paymentType: 'Cash',
         inventoryId: null,
-        quantity: ''
+        quantity: '',
+        debitAccount: 'Cash/Bank (1001)',
+        creditAccount: 'Sales Revenue (4001)',
       });
       fetchInitialData();
     } catch (err: any) {
@@ -136,8 +158,8 @@ export default function SalesPage() {
       date: new Date(item.date).toISOString().split('T')[0],
       description: item.description || '',
       paymentType: item.paymentType || 'Cash',
-      inventoryId: null,
-      quantity: '',
+      inventoryId: itemData?.inventoryId || null,
+      quantity: itemData?.quantity?.toString() || '',
     });
     setIsModalOpen(true);
   };
@@ -158,9 +180,9 @@ export default function SalesPage() {
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
             <TrendingUp className="w-8 h-8 text-emerald-500" />
-            Sales Module
+            Sales Transactions
           </h1>
-          <p className="text-slate-400 mt-1">Record product sales and automatically update inventory levels.</p>
+          <p className="text-slate-400 mt-1">Record product sales and automatically update accounting ledgers.</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
@@ -200,8 +222,9 @@ export default function SalesPage() {
             <thead>
               <tr className="bg-slate-950/50 text-slate-500 text-xs uppercase tracking-wider font-bold">
                 <th className="px-6 py-5">Date</th>
+                <th className="px-6 py-5">Product Sold</th>
+                <th className="px-6 py-5">Qty</th>
                 <th className="px-6 py-5">Type</th>
-                <th className="px-6 py-5">Description</th>
                 <th className="px-6 py-5">Sale Amount</th>
                 <th className="px-6 py-5 text-right">Actions</th>
               </tr>
@@ -209,18 +232,27 @@ export default function SalesPage() {
             <tbody className="divide-y divide-slate-800/50">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-20 text-center">
+                  <td colSpan={6} className="py-20 text-center">
                     <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto" />
                   </td>
                 </tr>
               ) : sales.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-20 text-center text-slate-500 font-medium">No sales recorded.</td>
+                  <td colSpan={6} className="py-20 text-center text-slate-500 font-medium">No sales recorded.</td>
                 </tr>
               ) : (
                 sales.map((sale) => (
                   <tr key={sale.id} className="hover:bg-slate-800/30 transition-colors group">
                     <td className="px-6 py-4 text-white font-medium">{formatDate(sale.date)}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-white font-bold">{sale.items?.[0]?.inventory?.name || 'Manual Entry'}</span>
+                        <span className="text-[10px] text-slate-500 uppercase tracking-widest">{sale.description || 'No notes'}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-slate-300 font-bold tabular-nums">
+                      {sale.items?.[0]?.quantity || '-'}
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${
                         sale.paymentType === 'Cash' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
@@ -230,9 +262,6 @@ export default function SalesPage() {
                       }`}>
                         {sale.paymentType || 'Cash'}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-400 text-sm truncate max-w-[200px]">
-                      {sale.description || '-'}
                     </td>
                     <td className="px-6 py-4 font-black text-emerald-500">{formatCurrency(sale.amount)}</td>
                     <td className="px-6 py-4 text-right">
@@ -288,18 +317,17 @@ export default function SalesPage() {
             )}
 
             <form onSubmit={handleSaveSale} className="space-y-6">
-              <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2 ml-1">Sale Date</label>
-                <input 
-                  type="date" 
-                  required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-emerald-600/50 transition-all font-medium"
-                  value={formData.date}
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
-                />
-              </div>
-
-              <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-300 text-sm font-medium mb-2 ml-1">Sale Date</label>
+                  <input 
+                    type="date" 
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-emerald-600/50 transition-all font-medium"
+                    value={formData.date}
+                    onChange={(e) => setFormData({...formData, date: e.target.value})}
+                  />
+                </div>
                 <div>
                   <label className="block text-slate-300 text-sm font-medium mb-2 ml-1">Sale Type / Source</label>
                   <select 
@@ -315,17 +343,75 @@ export default function SalesPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2 ml-1">Total Sale Amount ($)</label>
-                <input 
-                  type="number" 
-                  step="0.01"
-                  required
-                  placeholder="0.00"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-white placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/50 transition-all font-bold text-xl"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({...formData, amount: e.target.value})}
+              <div className="space-y-4 p-5 bg-slate-950/50 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-2 mb-2 text-emerald-500 font-black text-[10px] uppercase tracking-widest">
+                  <Package className="w-3 h-3" /> Inventory Deduction
+                </div>
+                
+                <InventorySearchSelect 
+                  items={inventory}
+                  selectedItemId={formData.inventoryId}
+                  onSelect={(item) => {
+                    setFormData({
+                      ...formData, 
+                      inventoryId: item?.id || null,
+                    });
+                  }}
                 />
+
+                <div>
+                  <label className="block text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2 ml-1">Quantity Sold</label>
+                  <input 
+                    type="number" 
+                    required
+                    placeholder="e.g. 50"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-white placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/50 transition-all font-bold"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({...formData, quantity: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 p-5 bg-blue-500/5 rounded-2xl border border-blue-500/10">
+                <div>
+                  <label className="block text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2 ml-1">Debit Account</label>
+                  <select 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all font-bold"
+                    value={formData.debitAccount}
+                    onChange={(e) => setFormData({...formData, debitAccount: e.target.value})}
+                  >
+                    {accounts.map(acc => (
+                      <option key={acc.id} value={`${acc.name} (${acc.code})`}>{acc.name} ({acc.code})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2 ml-1">Credit Account</label>
+                  <select 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all font-bold"
+                    value={formData.creditAccount}
+                    onChange={(e) => setFormData({...formData, creditAccount: e.target.value})}
+                  >
+                    {accounts.map(acc => (
+                      <option key={acc.id} value={`${acc.name} (${acc.code})`}>{acc.name} ({acc.code})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-slate-300 text-sm font-medium mb-2 ml-1">Total Sale Amount ($)</label>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    required
+                    placeholder="0.00"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-white placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/50 transition-all font-bold text-xl"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                  />
+                </div>
               </div>
 
               <div>

@@ -53,13 +53,5 @@ export class InventoryController {
     return this.inventoryService.delete(id);
   }
 
-  @Post(':id/withdraw')
-  @Roles('ADMIN', 'ACCOUNTANT')
-  async withdraw(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('quantity', ParseIntPipe) quantity: number,
-    @User('userId') userId: number
-  ) {
-    return this.inventoryService.withdraw(id, quantity, userId);
-  }
+
 }

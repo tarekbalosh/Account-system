@@ -4,10 +4,14 @@ import { PrismaService } from '../prisma.service';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { UpdatePurchaseDto } from './dto/update-purchase.dto';
 import { Purchase } from '@prisma/client';
+import { AccountingService } from '../accounting/accounting.service';
 
 @Injectable()
 export class PurchasesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly accounting: AccountingService,
+  ) {}
 
   async create(dto: CreatePurchaseDto, userId: number): Promise<Purchase> {
     // Validate each line item references an existing inventory material
@@ -42,6 +46,17 @@ export class PurchasesService {
 
         await this.applyInventoryAdjustment(prisma, item.materialId, item.quantity, item.unitCost, 'PURCHASE');
       }
+
+      // Record Accounting Transaction
+      await this.accounting.recordPurchase(
+        purchase.totalAmount,
+        dto.debitAccount,
+        dto.creditAccount,
+        `Purchase #${purchase.id}`,
+        purchase.invoiceDate,
+        prisma
+      );
+
       return purchase;
     });
   }

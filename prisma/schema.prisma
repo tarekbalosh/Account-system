@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -125,4 +125,21 @@ model InventoryLog {
   operationType String        // PURCHASE, SALE, UPDATE, DELETE
   quantityDiff Int           // positive for increase, negative for decrease
   timestamp    DateTime      @default(now())
+}
+
+model Account {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  code      String   @unique
+  type      String   // ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE
+}
+
+model Transaction {
+  id            Int      @id @default(autoincrement())
+  date          DateTime @default(now())
+  debitAccount  String
+  creditAccount String
+  amount        Float
+  description   String?
+  reference     String?  // e.g. "Sale #123", "Purchase #456"
 }

@@ -25,6 +25,14 @@ export class CreateSaleDto {
   @IsOptional()
   paymentType?: string;
 
+  @IsString()
+  @IsOptional()
+  debitAccount?: string;
+
+  @IsString()
+  @IsOptional()
+  creditAccount?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SaleItemDto)

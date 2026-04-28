@@ -3,10 +3,14 @@ import { PrismaService } from '../prisma.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 import { Sale } from '@prisma/client';
+import { AccountingService } from '../accounting/accounting.service';
 
 @Injectable()
 export class SalesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly accounting: AccountingService,
+  ) {}
 
   async create(dto: CreateSaleDto, userId: number): Promise<Sale> {
     return this.prisma.$transaction(async (prisma) => {
@@ -55,6 +59,16 @@ export class SalesService {
           },
         });
       }
+
+      // 4. Record Accounting Transaction
+      await this.accounting.recordSale(
+        sale.amount,
+        dto.debitAccount || 'Cash/Bank (1001)',
+        dto.creditAccount || 'Sales Revenue (4001)',
+        `Sale #${sale.id}`,
+        sale.date,
+        prisma
+      );
 
       return sale;
     });

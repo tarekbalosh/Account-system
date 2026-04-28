@@ -58,59 +58,7 @@ export class InventoryService {
     });
   }
 
-  async withdraw(id: number, quantity: number, userId: number): Promise<InventoryItem> {
-    return this.prisma.$transaction(async (prisma) => {
-      const existing = await prisma.inventoryItem.findUnique({ where: { id } });
-      if (!existing) {
-        throw new NotFoundException('Inventory item not found');
-      }
 
-      if (existing.quantity < quantity) {
-        throw new BadRequestException(`Insufficient stock. Available: ${existing.quantity}, Requested: ${quantity}`);
-      }
-
-      const updated = await prisma.inventoryItem.update({
-        where: { id },
-        data: {
-          quantity: { decrement: quantity },
-        },
-      });
-
-      // 1. Ensure "Consumption Materials" category exists
-      let category = await prisma.expenseCategory.findUnique({
-        where: { name: 'Consumption Materials' }
-      });
-      
-      if (!category) {
-        category = await prisma.expenseCategory.create({
-          data: { name: 'Consumption Materials' }
-        });
-      }
-
-      // 2. Create Expense record for the withdrawal
-      const totalCost = quantity * existing.unitCost;
-      await prisma.expense.create({
-        data: {
-          amount: totalCost,
-          date: new Date(),
-          description: `Withdrawal: ${quantity} units of ${existing.name}`,
-          category: { connect: { id: category.id } },
-          user: { connect: { id: userId } },
-        }
-      });
-
-      // 3. Log the manual withdrawal
-      await prisma.inventoryLog.create({
-        data: {
-          inventoryId: id,
-          operationType: 'MANUAL_WITHDRAWAL',
-          quantityDiff: -quantity,
-        },
-      });
-
-      return updated;
-    });
-  }
 
   async delete(id: number): Promise<InventoryItem> {
     const existing = await this.prisma.inventoryItem.findUnique({ where: { id } });

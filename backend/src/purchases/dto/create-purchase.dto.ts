@@ -10,6 +10,12 @@ export class CreatePurchaseDto {
   @IsDateString()
   invoiceDate: string; // ISO date string
 
+  @IsString()
+  debitAccount: string;
+
+  @IsString()
+  creditAccount: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreatePurchaseItemDto)

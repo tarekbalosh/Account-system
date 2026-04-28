@@ -34,25 +34,6 @@ export class NotificationsService {
       });
     }
 
-    // Check for profit drop
-    const currentRevenue = await this.prisma.revenue.aggregate({
-      where: { date: { gte: lastMonth } },
-      _sum: { amount: true },
-    });
-    const prevRevenue = await this.prisma.revenue.aggregate({
-      where: { date: { gte: twoMonthsAgo, lt: lastMonth } },
-      _sum: { amount: true },
-    });
-
-    const currProfit = (Number(currentRevenue._sum.amount) || 0) - currExp;
-    const prevProfit = (Number(prevRevenue._sum.amount) || 0) - prevExp;
-
-    if (prevProfit > 0 && currProfit < prevProfit * 0.75) {
-      alerts.push({
-        type: 'CRITICAL',
-        message: `Profit Drop: Current month profit (${currProfit.toFixed(2)}) has dropped 25%+ compared to previous month (${prevProfit.toFixed(2)}).`,
-      });
-    }
 
     // Check for low stock inventory
     const lowStockItems = await this.prisma.inventoryItem.findMany({

@@ -3,10 +3,14 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { Expense, Prisma } from '@prisma/client';
+import { AccountingService } from '../accounting/accounting.service';
 
 @Injectable()
 export class ExpensesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly accounting: AccountingService,
+  ) {}
 
   async create(dto: CreateExpenseDto, userId: number): Promise<Expense> {
     if (dto.categoryId) {
@@ -15,14 +19,26 @@ export class ExpensesService {
         throw new BadRequestException('Expense category not found');
       }
     }
-    return this.prisma.expense.create({
-      data: {
-        amount: dto.amount,
-        date: new Date(dto.date),
-        description: dto.description,
-        category: dto.categoryId ? { connect: { id: dto.categoryId } } : undefined,
-        user: { connect: { id: userId } },
-      },
+    return this.prisma.$transaction(async (prisma) => {
+      const expense = await prisma.expense.create({
+        data: {
+          amount: dto.amount,
+          date: new Date(dto.date),
+          description: dto.description,
+          category: dto.categoryId ? { connect: { id: dto.categoryId } } : undefined,
+          user: { connect: { id: userId } },
+        },
+      });
+
+      await this.accounting.recordExpense(
+        expense.amount,
+        expense.description || 'No description',
+        `Expense #${expense.id}`,
+        expense.date,
+        prisma
+      );
+
+      return expense;
     });
   }
 

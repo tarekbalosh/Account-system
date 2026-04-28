@@ -7,7 +7,6 @@ import { UsersModule } from './users/users.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { PurchasesModule } from './purchases/purchases.module';
 import { InventoryModule } from './inventory/inventory.module';
-import { ReportsModule } from './reports/reports.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { SalesModule } from './sales/sales.module';
 
@@ -20,7 +19,6 @@ import { SalesModule } from './sales/sales.module';
     ExpensesModule,
     PurchasesModule,
     InventoryModule,
-    ReportsModule,
     NotificationsModule,
   ],
   providers: [PrismaService],

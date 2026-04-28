@@ -13,7 +13,6 @@ import {
   Loader2,
   AlertCircle,
   History,
-  TrendingDown,
   Trash2,
   Edit,
   CheckSquare,
@@ -22,14 +21,13 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import InventorySearchSelect from '@/components/ui/InventorySearchSelect';
+
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 
 export default function InventoryPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -48,17 +46,12 @@ export default function InventoryPage() {
     onConfirm: () => {},
   });
 
-  // Form States
   const [formData, setFormData] = useState({
     name: '',
     quantity: '0',
     unitCost: '0',
   });
 
-  const [withdrawData, setWithdrawData] = useState({
-    itemId: null as number | null,
-    quantity: '',
-  });
 
   const fetchInventory = async () => {
     try {
@@ -159,23 +152,7 @@ export default function InventoryPage() {
     }
   };
 
-  const handleWithdraw = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    if (!withdrawData.itemId || !withdrawData.quantity) return;
 
-    try {
-      await api.post(`/inventory/${withdrawData.itemId}/withdraw`, {
-        quantity: parseInt(withdrawData.quantity),
-      });
-      
-      setIsWithdrawModalOpen(false);
-      setWithdrawData({ itemId: null, quantity: '' });
-      fetchInventory();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to withdraw items');
-    }
-  };
 
   const openEditModal = (item: InventoryItem) => {
     setEditingItem(item);
@@ -194,7 +171,7 @@ export default function InventoryPage() {
   };
 
   return (
-    <div className="p-8 space-y-8 min-h-screen pb-20">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 min-h-screen pb-20">
       <ConfirmationModal 
         isOpen={confirmConfig.isOpen}
         title={confirmConfig.title}
@@ -203,37 +180,32 @@ export default function InventoryPage() {
         onConfirm={confirmConfig.onConfirm}
         onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
       />
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Inventory Management</h1>
-          <p className="text-slate-400 mt-1">Track material stock levels and acquisition costs.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Inventory Management</h1>
+          <p className="text-slate-400 mt-1 text-sm md:text-base">Track material stock levels and acquisition costs.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
           {items.length > 0 && (
             <button 
               onClick={confirmClearAll}
-              className="px-4 py-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-xl font-bold hover:bg-rose-500 hover:text-white transition-all text-sm"
+              className="flex-1 md:flex-none px-4 py-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-xl font-bold hover:bg-rose-500 hover:text-white transition-all text-xs md:text-sm"
             >
               Clear Inventory
             </button>
           )}
-          <button 
-            onClick={() => setIsWithdrawModalOpen(true)}
-            className="px-6 py-2.5 bg-slate-900 border border-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center gap-2"
-          >
-            <TrendingDown className="w-5 h-5 text-rose-500" />
-            Withdraw Stock
-          </button>
+
           <button 
             onClick={() => {
               setEditingItem(null);
               setFormData({ name: '', quantity: '0', unitCost: '0' });
               setIsModalOpen(true);
             }}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2"
+            className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 text-xs md:text-sm"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4 md:w-5 md:h-5" />
             Add Material
           </button>
         </div>
@@ -304,59 +276,63 @@ export default function InventoryPage() {
                 ${selectedIds.includes(item.id) ? 'border-blue-500 ring-1 ring-blue-500/50 shadow-lg shadow-blue-500/10' : 'border-slate-800 hover:border-slate-700'}
               `}
             >
-              <div className="flex items-start justify-between relative">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-4 relative">
+                <div className="flex items-center gap-3 md:gap-4">
                   <button 
                     onClick={() => toggleSelection(item.id)}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${selectedIds.includes(item.id) ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-500 hover:text-white'}`}
+                    className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${selectedIds.includes(item.id) ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-500 hover:text-white'}`}
                   >
                     {selectedIds.includes(item.id) ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
                   </button>
-                  <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center">
-                    <Package className="w-6 h-6 text-blue-500" />
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-slate-800 rounded-2xl flex items-center justify-center">
+                    <Package className="w-5 h-5 md:w-6 md:h-6 text-blue-500" />
                   </div>
                   <div>
-                    <h4 className="text-lg font-bold text-white">{item.name}</h4>
-                    <p className="text-slate-500 text-sm">ID: #{item.id.toString().padStart(4, '0')}</p>
+                    <h4 className="text-base md:text-lg font-bold text-white">{item.name}</h4>
+                    <p className="text-slate-500 text-[10px] md:text-sm">ID: #{item.id.toString().padStart(4, '0')}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 md:gap-2 self-end sm:self-auto">
                   <button 
                     onClick={() => openEditModal(item)}
-                    className="p-2 text-slate-500 hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all"
+                    className="p-1.5 md:p-2 text-slate-500 hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all"
                     title="Edit Item"
                   >
-                    <Edit className="w-5 h-5" />
+                    <Edit className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
                   <button 
                     onClick={() => confirmDelete(item.id)}
-                    className="p-2 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                    className="p-1.5 md:p-2 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
                     title="Remove Item"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
                   <button 
-                    className="p-2 text-slate-500 hover:text-white"
+                    className="p-1.5 md:p-2 text-slate-500 hover:text-white"
                     title="View History"
                   >
-                    <History className="w-5 h-5" />
+                    <History className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-6">
-                <div className="bg-slate-950 rounded-2xl p-4 border border-slate-800/50">
-                  <p className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Quantity</p>
-                  <div className="flex items-center justify-between">
-                    <p className={`text-xl font-bold ${item.quantity < 5 ? 'text-orange-500' : 'text-white'}`}>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mt-6">
+                <div className="bg-slate-950 rounded-2xl p-4 border border-slate-800/50 flex sm:block items-center justify-between">
+                  <div>
+                    <p className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Quantity</p>
+                    <p className={`text-lg md:text-xl font-bold ${item.quantity < 5 ? 'text-orange-500' : 'text-white'}`}>
                       {item.quantity}
                     </p>
-                    {item.quantity < 5 && <AlertTriangle className="w-4 h-4 text-orange-500" />}
                   </div>
+                  {item.quantity < 5 && <AlertTriangle className="w-4 h-4 text-orange-500" />}
                 </div>
-                <div className="bg-slate-950 rounded-2xl p-4 border border-slate-800/50">
-                  <p className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Avg Unit Cost</p>
-                  <p className="text-xl font-bold text-white">{formatCurrency(item.unitCost)}</p>
+                <div className="bg-slate-950 rounded-2xl p-4 border border-slate-800/50 flex sm:block items-center justify-between">
+                  <p className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Avg Unit Cost</p>
+                  <p className="text-lg md:text-xl font-bold text-white">{formatCurrency(item.unitCost)}</p>
+                </div>
+                <div className="bg-slate-950 rounded-2xl p-4 border border-slate-800/50 flex sm:block items-center justify-between">
+                  <p className="text-[10px] md:text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Total Value</p>
+                  <p className="text-lg md:text-xl font-bold text-blue-500">{formatCurrency(item.quantity * item.unitCost)}</p>
                 </div>
               </div>
             </div>
@@ -449,90 +425,7 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {/* Withdraw Stock Modal */}
-      {/* ... keeping existing withdraw modal code ... */}
-      {isWithdrawModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-8 animate-in zoom-in-95 duration-300">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                <TrendingDown className="w-6 h-6 text-rose-500" />
-                Withdraw Items
-              </h2>
-              <button 
-                onClick={() => {
-                  setIsWithdrawModalOpen(false);
-                  setError(null);
-                  setWithdrawData({ itemId: null, quantity: '' });
-                }} 
-                className="text-slate-400 hover:text-white p-2"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
 
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl flex items-center mb-6 text-sm">
-                <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleWithdraw} className="space-y-6">
-              <InventorySearchSelect 
-                items={items}
-                selectedItemId={withdrawData.itemId}
-                onSelect={(item) => setWithdrawData({ ...withdrawData, itemId: item ? item.id : null })}
-                label="Select Material to Withdraw"
-              />
-
-              {withdrawData.itemId && (
-                <div className="animate-in slide-in-from-top-4 duration-300">
-                  <label className="block text-slate-300 text-sm font-medium mb-2 ml-1">Quantity to Withdraw</label>
-                  <div className="relative">
-                    <input 
-                      type="number" 
-                      required
-                      min="1"
-                      max={items.find(i => i.id === withdrawData.itemId)?.quantity}
-                      placeholder="0"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-rose-600/50 transition-all font-bold text-xl"
-                      value={withdrawData.quantity}
-                      onChange={(e) => setWithdrawData({...withdrawData, quantity: e.target.value})}
-                    />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold uppercase">
-                      Max: {items.find(i => i.id === withdrawData.itemId)?.quantity}
-                    </div>
-                  </div>
-                  {parseInt(withdrawData.quantity) > (items.find(i => i.id === withdrawData.itemId)?.quantity || 0) && (
-                    <p className="text-rose-500 text-xs mt-2 font-medium flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      Insufficient stock available
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div className="flex gap-4 pt-4">
-                <button 
-                  type="button" 
-                  onClick={() => setIsWithdrawModalOpen(false)}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-4 rounded-xl transition-all"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={!withdrawData.itemId || !withdrawData.quantity || parseInt(withdrawData.quantity) > (items.find(i => i.id === withdrawData.itemId)?.quantity || 0)}
-                  className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg shadow-rose-600/20 transition-all"
-                >
-                  Confirm Withdrawal
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

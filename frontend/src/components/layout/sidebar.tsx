@@ -15,17 +15,18 @@ import {
   LogOut,
   ChevronRight,
   User as UserIcon,
-  X
+  X,
+  BookText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Transactions', href: '/accounting/transactions', icon: BookText },
   { name: 'Sales', href: '/sales', icon: TrendingUp },
   { name: 'Expenses', href: '/expenses', icon: TrendingDown },
   { name: 'Purchases', href: '/purchases', icon: ShoppingCart },
   { name: 'Inventory', href: '/inventory', icon: Package },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Users', href: '/admin/users', icon: UserIcon, adminOnly: true },
 ];
 

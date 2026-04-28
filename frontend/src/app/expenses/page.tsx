@@ -20,6 +20,10 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 
+
+
+
+
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
@@ -29,6 +33,8 @@ export default function ExpensesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [pdfLibs, setPdfLibs] = useState<any>(null);
+
 
   // Confirmation State
   const [confirmConfig, setConfirmConfig] = useState<{
@@ -80,7 +86,17 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     fetchExpenses();
+    // Pre-load PDF libraries for stable downloads
+    Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ]).then(([jspdf, autotable]) => {
+      setPdfLibs({ jsPDF: jspdf.jsPDF, autoTable: autotable.default });
+    }).catch(err => console.error('Failed to pre-load PDF libraries', err));
   }, []);
+
+
+
 
   const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,8 +159,32 @@ export default function ExpensesPage() {
     return matchesSearch && matchesCategory;
   });
 
+  const exportToPDF = () => {
+    // Read token from localStorage (same place the API interceptor uses it)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!token) {
+      alert('You must be logged in to download the report.');
+      return;
+    }
+    // Direct GET navigation to Pages API (no RSC headers, clean download)
+    window.location.href = `/api/export-pdf?token=${encodeURIComponent(token)}`;
+
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 pb-20 md:pb-8">
       <ConfirmationModal 
         isOpen={confirmConfig.isOpen}
         title={confirmConfig.title}
@@ -156,34 +196,39 @@ export default function ExpensesPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Expense Management</h1>
-          <p className="text-slate-400 mt-1">Record and categorize business expenditures.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Expense Management</h1>
+          <p className="text-slate-400 mt-1 text-sm md:text-base">Record and categorize business expenditures.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all">
+        <div className="flex items-center gap-2 md:gap-3">
+          <button 
+            onClick={exportToPDF}
+            className="flex-1 md:flex-none p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white hover:border-slate-700 transition-all flex items-center justify-center gap-2"
+            title="Download PDF Report"
+          >
             <Download className="w-5 h-5" />
+            <span className="md:hidden font-bold text-sm">Download Report</span>
           </button>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="bg-rose-600 hover:bg-rose-500 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-rose-600/20 transition-all flex items-center gap-2"
+            className="flex-[2] md:flex-none bg-rose-600 hover:bg-rose-500 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-rose-600/20 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4 md:w-5 md:h-5" />
             Add Expense
           </button>
         </div>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-4 flex-1">
-          <div className="relative flex-1 max-w-md">
+      <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 flex-1">
+          <div className="relative flex-1 w-full md:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
             <input 
               type="text" 
               placeholder="Filter by description or category..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-600/50 transition-all font-medium"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 md:py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-600/50 transition-all font-medium"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -191,7 +236,7 @@ export default function ExpensesPage() {
             <select 
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-rose-600/50"
+              className="flex-1 md:flex-none bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-2.5 md:py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-rose-600/50"
             >
               <option value="all">All Categories</option>
               {categories.map(cat => (
@@ -200,7 +245,7 @@ export default function ExpensesPage() {
             </select>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300">
+        <div className="flex items-center justify-center gap-2 px-4 py-2.5 md:py-2 bg-slate-800 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300">
           <Calendar className="w-4 h-4 text-rose-500" />
           Last 30 Days
         </div>
